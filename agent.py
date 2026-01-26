@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
-from state import AgentState
+from state import PrivateState, InputState
 from tools import calculator, manage_tasks, save_summary
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -18,8 +18,8 @@ llm = ChatOpenAI(
 )
 llm_with_tools = llm.bind_tools([calculator, manage_tasks, save_summary])
 
-# 2. chatbot node
-def chatbot(state: AgentState):
+# chatbot node
+def chatbot(state: PrivateState):
     """Chatbot node that processes messages using the LLM."""
 
     current_tasks = state.get("tasks", [])
@@ -38,8 +38,8 @@ def chatbot(state: AgentState):
 
     return {"messages": [response]}
 
-# 3. node memory
-def memory_manager(state: AgentState):
+# memory node
+def memory_manager(state: PrivateState):
     """Memory node that extracts tasks from tool calls."""
     recent_messages = state["messages"][-2:]
     updates = {}
@@ -63,14 +63,21 @@ def memory_manager(state: AgentState):
         
     return updates
 
-# graphs construction
-workflow = StateGraph(AgentState)
+def input_node(state: InputState):
+    return {
+        "messages": [HumanMessage(content=state["question"])]
+    }
 
+# graphs construction
+workflow = StateGraph(PrivateState)
+
+workflow.add_node("input_node", input_node)
 workflow.add_node("chatbot", chatbot)
 workflow.add_node("tools", ToolNode([calculator, manage_tasks, save_summary]))
 workflow.add_node("memory_manager", memory_manager)
+workflow.add_edge(START, "input_node")
+workflow.add_edge("input_node", "chatbot")
 
-workflow.add_edge(START, "chatbot")
 workflow.add_conditional_edges("chatbot", tools_condition)
 workflow.add_edge("tools", "memory_manager")
 workflow.add_edge("memory_manager", "chatbot")
@@ -80,31 +87,22 @@ graph = workflow.compile(checkpointer=memory)
 
 if __name__ == "__main__":
     print("\n🤖 Bot iniciado! (Digite 'sair' para fechar)")
-    
     config = {"configurable": {"thread_id": "1"}}
     
     while True:
         try:
             user_input = input("\nVocê: ")
             if user_input.lower() in ["sair", "exit", "quit"]:
-                print("\nEncerrando...")
                 break
             
-            events = graph.stream(
-                {"messages": [HumanMessage(content=user_input)]},
+            print("\nProcessando...", end="\r")
+            
+            final_state = graph.invoke(
+                {"question": user_input}, 
                 config=config
             )
             
-            for event in events:
-                for node_name, values in event.items():
-                    if values and "messages" in values:
-                        last_msg = values["messages"][-1]
-                        print(f"\n--- {node_name} ---\n")
-                        print(last_msg.content)
-                    
-                    elif values and "summary" in values:
-                        print(f"\n--- {node_name} ---\n")
-                        print(f"[Sistema] Resumo atualizado.")
-                        
+            print(f"Assistente: {final_state['messages'][-1].content}")
+            
         except Exception as e:
-            print(f"Erro no loop: {repr(e)}")
+            print(f"Erro: {e}")
