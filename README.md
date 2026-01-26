@@ -1,1 +1,1 @@
-# SimpleGraph
+# SimpleAgent
