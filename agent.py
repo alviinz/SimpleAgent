@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 from state import AgentState
 from tools import calculator, manage_tasks
+from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()
 
@@ -22,7 +23,13 @@ def chatbot(state: AgentState):
     """Chatbot node that processes messages using the LLM."""
 
     current_tasks = state.get("tasks", [])
-    system_msg = SystemMessage(content=f"You are a helpful assistant. Current User Tasks: {current_tasks}")
+    system_msg = SystemMessage(content=(
+    f"You are a helpful assistant. "
+    f"Current User Tasks: {current_tasks}. "
+    f"IMPORTANT: Do not use LaTeX formatting (like \\( \\) or \\times). "
+    f"Always output math in plain text (e.g., '2 * 5 = 10')."
+    f"Do not use decimal points for whole numbers."
+))
     messages = [system_msg] + state["messages"]
     
     response = llm_with_tools.invoke(messages)
@@ -60,3 +67,34 @@ workflow.add_edge("tools", "task_memory")
 workflow.add_edge("task_memory", "chatbot")
 
 graph = workflow.compile()
+
+memory = MemorySaver()
+
+graph = workflow.compile(checkpointer=memory)
+
+if __name__ == "__main__":
+    print("🤖 Bot iniciado com MEMÓRIA! (Digite 'sair' para fechar)")
+    
+    config = {"configurable": {"thread_id": "1"}}
+    
+    while True:
+        try:
+            user_input = input("\nVocê: ")
+            if user_input.lower() in ["sair", "exit", "quit"]:
+                print("Encerrando...")
+                break
+            
+            events = graph.stream(
+                {"messages": [HumanMessage(content=user_input)]},
+                config=config
+            )
+            
+            for event in events:
+                for node_name, values in event.items():
+                    if "messages" in values:
+                        last_msg = values["messages"][-1]
+                        print(f"\n--- {node_name} ---\n")
+                        print(last_msg.content)
+                        
+        except Exception as e:
+            print(f"Erro: {e}")
