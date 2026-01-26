@@ -20,3 +20,11 @@ def manage_tasks(action: str, task_description: str = None):
     if action == "add" and task_description:
         return f"SUCCESS: Task '{task_description}' processed."
     return "Error: Invalid action."
+
+@tool
+def save_summary(summary_text: str):
+    """
+    Use this when the user ask explicitly to summarize the conversation.
+    Generates and saves the summary.
+    """
+    return f"SUCCESS - Summary saved: {summary_text}"
