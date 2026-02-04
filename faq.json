@@ -1,0 +1,62 @@
+[
+  {
+    "user_query": "Quero adicionar um produto no carrinho",
+    "answer_default": "Certo. Para adicionar um item ao carrinho, informe o nome do produto (ou código) e a quantidade desejada. Exemplo: \"Adicionar: Mouse X | qtd: 1\"."
+  },
+  {
+    "user_query": "Adiciona esse item no meu carrinho",
+    "answer_default": "Certo. Para adicionar um item ao carrinho, informe o nome do produto (ou código) e a quantidade desejada. Exemplo: \"Adicionar: Mouse X | qtd: 1\"."
+  },
+  {
+    "user_query": "Coloca o produto que eu mencionei no carrinho",
+    "answer_default": "Certo. Para adicionar um item ao carrinho, informe o nome do produto (ou código) e a quantidade desejada. Exemplo: \"Adicionar: Mouse X | qtd: 1\"."
+  },
+  {
+    "user_query": "Quero alterar a quantidade de um item no carrinho",
+    "answer_default": "Ok. Para alterar a quantidade de um item no carrinho, informe o nome do produto (ou código) e a nova quantidade. Exemplo: \"Alterar quantidade: Mouse X | qtd: 2\"."
+  },
+  {
+    "user_query": "Aumenta a quantidade desse item",
+    "answer_default": "Ok. Para alterar a quantidade de um item no carrinho, informe o nome do produto (ou código) e a nova quantidade. Exemplo: \"Alterar quantidade: Mouse X | qtd: 2\"."
+  },
+  {
+    "user_query": "Diminui a quantidade para uma unidade",
+    "answer_default": "Ok. Para alterar a quantidade de um item no carrinho, informe o nome do produto (ou código) e a nova quantidade. Exemplo: \"Alterar quantidade: Mouse X | qtd: 1\"."
+  },
+  {
+    "user_query": "Quero remover um item do carrinho",
+    "answer_default": "Sem problemas. Para remover um item do carrinho, informe o nome do produto (ou código). Exemplo: \"Remover: Mouse X\"."
+  },
+  {
+    "user_query": "Remove do carrinho o fone de ouvido",
+    "answer_default": "Sem problemas. Para remover um item do carrinho, informe o nome do produto (ou código). Exemplo: \"Remover: Fone Y\"."
+  },
+  {
+    "user_query": "Excluir item do carrinho",
+    "answer_default": "Sem problemas. Para remover um item do carrinho, informe o nome do produto (ou código). Exemplo: \"Remover: Mouse X\"."
+  },
+  {
+    "user_query": "Tenho dúvidas sobre esse produto",
+    "answer_default": "Para dúvidas detalhadas sobre o produto (especificações, garantia, compatibilidade), consulte: https://loja.exemplo/produto (link fictício). Se informar o nome do item, posso orientar onde encontrar a informação."
+  },
+  {
+    "user_query": "Esse produto tem garantia?",
+    "answer_default": "Para dúvidas detalhadas sobre o produto (especificações, garantia, compatibilidade), consulte: https://loja.exemplo/produto (link fictício). Se informar o nome do item, posso orientar onde encontrar a informação."
+  },
+  {
+    "user_query": "Esse item é compatível com meu notebook?",
+    "answer_default": "Para dúvidas detalhadas sobre o produto (especificações, garantia, compatibilidade), consulte: https://loja.exemplo/produto (link fictício). Se informar o nome do item, posso orientar onde encontrar a informação."
+  },
+  {
+    "user_query": "Quais são as promoções disponíveis?",
+    "answer_default": "Para visualizar promoções e cupons ativos, acesse: https://loja.exemplo/promocoes (link fictício). Se informar a categoria do produto, posso indicar a seção correta."
+  },
+  {
+    "user_query": "Tem desconto hoje?",
+    "answer_default": "Para visualizar promoções e cupons ativos, acesse: https://loja.exemplo/promocoes (link fictício). Se informar a categoria do produto, posso indicar a seção correta."
+  },
+  {
+    "user_query": "Existe cupom de primeira compra?",
+    "answer_default": "Para visualizar promoções e cupons ativos, acesse: https://loja.exemplo/promocoes (link fictício). Se informar a categoria do produto, posso indicar a seção correta."
+  }
+]

@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 from state import PrivateState, InputState
 from tools import calculator, manage_tasks, save_summary
+from rag_tools import search_faq_database
 from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()
@@ -37,6 +38,26 @@ def chatbot(state: PrivateState):
     response = llm_with_tools.invoke(messages)
 
     return {"messages": [response]}
+
+def router(state: PrivateState):
+    """Node that decides the path: FAQ or Common Chat."""
+    question = state["messages"][-1].content.lower()
+    
+    # Quick prompt for the LLM to decide routing
+    prompt = f"The user asked: '{question}'. Is this a technical question about products, cart, or promotions? Respond only YES or NO."
+    answer = llm.invoke([HumanMessage(content=prompt)]).content.upper()
+
+    if "YES" in answer:
+        return "rag_node"
+    return "chatbot"
+
+def rag_node(state: PrivateState):
+    """Node that fetches the official answer from the database."""
+    question = state["messages"][-1].content
+    official_answer = search_faq_database(question)
+    
+    return {"messages": [HumanMessage(content=f"[FAQ] {official_answer}")]
+}
 
 # memory node
 def memory_manager(state: PrivateState):
@@ -72,12 +93,21 @@ def input_node(state: InputState):
 workflow = StateGraph(PrivateState)
 
 workflow.add_node("input_node", input_node)
+workflow.add_node("rag_node", rag_node)
 workflow.add_node("chatbot", chatbot)
 workflow.add_node("tools", ToolNode([calculator, manage_tasks, save_summary]))
 workflow.add_node("memory_manager", memory_manager)
-workflow.add_edge(START, "input_node")
-workflow.add_edge("input_node", "chatbot")
 
+workflow.add_edge(START, "input_node")
+workflow.add_conditional_edges(
+    "input_node",
+    router,
+    {               
+        "rag_node": "rag_node",
+        "chatbot": "chatbot"
+    }
+)
+workflow.add_edge("rag_node", END)
 workflow.add_conditional_edges("chatbot", tools_condition)
 workflow.add_edge("tools", "memory_manager")
 workflow.add_edge("memory_manager", "chatbot")
@@ -86,7 +116,7 @@ memory = MemorySaver()
 graph = workflow.compile(checkpointer=memory)
 
 if __name__ == "__main__":
-    print("\n🤖 Bot iniciado! (Digite 'sair' para fechar)")
+    print("\n Bot iniciado! (Digite 'sair' para fechar)")
     config = {"configurable": {"thread_id": "1"}}
     
     while True:

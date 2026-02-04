@@ -3,3 +3,7 @@ langgraph-api
 langchain-openai 
 langchain-groq 
 python-dotenv
+pychopg2-binary
+pgvector
+sentence-transformers
+langchain-postgres
