@@ -1,21 +1,21 @@
 import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 from state import PrivateState, InputState
 from tools import calculator, manage_tasks, save_summary
-from rag_tools import search_faq_database
+from rag_tools import search_faq_database, verify_response_quality
 from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()
 
 # setting up the LLM
-llm = ChatOpenAI(
-    model="openai/gpt-oss-120b",
+llm = ChatGroq(
+    model='llama-3.3-70b-versatile',
     api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
 )
 llm_with_tools = llm.bind_tools([calculator, manage_tasks, save_summary])
 
@@ -52,12 +52,35 @@ def router(state: PrivateState):
     return "chatbot"
 
 def rag_node(state: PrivateState):
-    """Node that fetches the official answer from the database."""
+    """
+    Completed RAG: Search - Generate Response - Return.
+    """
     question = state["messages"][-1].content
-    official_answer = search_faq_database(question)
     
-    return {"messages": [HumanMessage(content=f"[FAQ] {official_answer}")]
-}
+    retrieved_text = search_faq_database(question)
+
+    isValid = verify_response_quality(question, retrieved_text)
+    
+    if not isValid or "I didn't find any FAQ information." in retrieved_text:
+        error_prompt = (
+            f"The user asked: '{question}'.\n"
+            f"We searched the database but did NOT find any official information about that.\n"
+            f"Instruction: Respond politely to the user informing that you did not find that information in the official documentation. "
+            f"Respond in the same language the user used in the question."
+        )
+        error_message = llm.invoke([HumanMessage(content=error_prompt)])
+        return {"messages": [error_message]}
+    prompt_rag = (
+        f"You're a trusted seller's assistant. "
+        f"Answer the user's question using ONLY the following context retrieved from the database.\n"
+        f"--- CONTEXT ---\n{retrieved_text}\n----------------\n"
+        f"User's question: {question}\n"
+        f"Instruction: Respond in a friendly manner and end with the citation '[Source: Official FAQ]'."
+    )
+
+    final_response = llm.invoke([HumanMessage(content=prompt_rag)])
+    
+    return {"messages": [final_response]}
 
 # memory node
 def memory_manager(state: PrivateState):
