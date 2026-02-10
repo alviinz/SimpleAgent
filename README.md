@@ -7,7 +7,7 @@
 
 > Um agente de IA inteligente para suporte a vendas, construído com arquitetura RAG (Retrieval-Augmented Generation), Banco de Dados Vetorial na Nuvem e Verificação de Qualidade.
 
-Este projeto foi desenvolvido como parte de um desafio prático da disciplina de **Ciência da Computação** na **UFCG (Universidade Federal de Campina Grande)**.
+Este projeto foi desenvolvido como parte de um desafio prático de um projeto **PD&I** na **UFCG (Universidade Federal de Campina Grande)**.
 
 ---
 
